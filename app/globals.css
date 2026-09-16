@@ -1,1 +1,11 @@
 @import "tailwindcss";
+
+@keyframes sacudida {
+  0% { transform: translate(0, 0) rotate(0) }
+  20% { transform: translate(-3px, 2px) rotate(-0.4deg) }
+  40% { transform: translate(3px, -2px) rotate(0.4deg) }
+  60% { transform: translate(-2px, -3px) rotate(-0.3deg) }
+  80% { transform: translate(2px, 3px) rotate(0.3deg) }
+  100% { transform: translate(0, 0) rotate(0) }
+}
+.sacudida { animation: sacudida 0.18s linear infinite }
