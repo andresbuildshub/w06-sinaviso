@@ -3,7 +3,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import {
   avisoSegundos, avisoCiudad, evaluarAccion, siguienteEnsayo, resumen, resumenGrupo,
-  leerConfig, leerEnsayos, CONFIG_INICIAL, debilidad,
+  leerConfig, leerEnsayos, CONFIG_INICIAL, debilidad, explicacionSimple, tiempoTexto,
 } from '../lib/ensayo.js'
 
 const cfg = (x = {}) => ({ ...CONFIG_INICIAL, ...x })
@@ -75,4 +75,17 @@ test('g) localStorage corrupto o fuera de lista se ignora', () => {
   assert.equal(leerConfig(JSON.stringify({ ...CONFIG_INICIAL, inicio: 12, fin: 12 })), null)
   assert.deepEqual(leerEnsayos('[{"n":9,"tipo":"sin","accion":null,"salida":false}, 5, null]'), [])
   assert.equal(leerEnsayos('{}').length, 0)
+})
+
+test('h) persona: resultados en lenguaje simple, sin jerga, con un paso citado', () => {
+  const persona = explicacionSimple(e({ accion: 'persona', estado: 'SIN_REGLA' }), cfg({ nivel: 'pb' }))
+  assert.doesNotMatch(persona.titulo + persona.texto + (persona.paso || ''), /citada|califica ayudar/)
+  assert.match(persona.guia.cita, /Plan Familiar de Protección Civil/)
+  const quieta = explicacionSimple(e({ tipo: 'con', avisoSeg: 58, accion: null, estado: null }), cfg())
+  assert.match(quieta.titulo, /No alcanzaste/); assert.match(quieta.texto, /58 segundos/); assert.match(quieta.guia.cita, /zona de seguridad/)
+  assert.match(explicacionSimple(e({ accion: 'ventana', estado: 'CONTRA', reglaId: 'R1' }), cfg()).titulo, /dice que no/)
+  assert.match(explicacionSimple(e({ accion: 'mesa', estado: 'SIN_REGLA' }), cfg({ cuida: true })).extra.texto, /quién lo acompaña/)
+  assert.equal(tiempoTexto(e({ tipo: 'con', segundos: 6.4, segDesdeTemblor: -51.6 })), 'Decidiste 6 segundos después de que sonó el tono, 52 antes de que empezara a temblar.')
+  // configuración vieja sin "cuida" sigue siendo válida; "casa" es una opción
+  assert.equal(leerConfig(JSON.stringify({ ...CONFIG_INICIAL, cuida: undefined, pipc: 'casa' })).cuida, false)
 })

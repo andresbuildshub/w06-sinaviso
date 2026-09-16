@@ -100,6 +100,12 @@ export default function Cuarto({ fase, intensidad = 'media', noche = false, nive
       const andadera = caja3(0.5, 0.8, 0.05, 0x9ca3af, 0.3, 0.4, 0.75, null, sofa)
       marcar('persona', ...piezasSofa, cuerpo, cabeza, pelo, andadera)
 
+      // zonas de toque más grandes e invisibles para dedos lentos (prueba de persona: la señora y la salida eran chicas)
+      const invisible = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false })
+      const zona = (w, h, d, x, y, z, parent = cuarto) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), invisible); m.position.set(x, y, z); parent.add(m); return m }
+      marcar('persona', zona(2.1, 1.6, 1.3, 0, 0.8, 0.15, sofa))
+      marcar('salida', nivel === 'pb' ? zona(1.3, 2.3, 0.3, 2.25, 1.15, -2.85) : zona(1.1, 1.2, 2.0, 1.45, 0.4, -1.0))
+
       // repisa con objetos que caen + lámpara colgante
       caja3(1.2, 0.05, 0.3, 0x5b4636, -0.2, 1.9, -2.83)
       const objetos = [[-0.55, 0x2563eb, 0.18], [-0.2, 0xf59e0b, 0.26], [0.15, 0x10b981, 0.2]].map(([x, c, h]) => {

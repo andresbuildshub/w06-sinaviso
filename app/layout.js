@@ -22,7 +22,7 @@ export default function RootLayout({ children }) {
         </header>
         <main className="mx-auto max-w-3xl px-4 py-6">{children}</main>
         <footer className="mx-auto max-w-3xl px-4 pb-10 pt-6 text-xs leading-relaxed text-stone-500">
-          Simulación en pantalla, no es VR · nada sale de tu teléfono · no reemplaza a Protección Civil ni al Programa Interno de tu edificio · proyecto de curso de Andrés Álvarez Morphy (Crystal Ball Studio, semana 6).
+          Ejercicio escolar de Andrés Álvarez Morphy (Crystal Ball Studio, semana 6). No es de Protección Civil ni la reemplaza · dibujo en pantalla, no realidad virtual · nada sale de tu teléfono.
         </footer>
       </body>
     </html>

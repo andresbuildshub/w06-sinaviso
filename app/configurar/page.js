@@ -32,13 +32,14 @@ export default function Configurar() {
   const horasFin = Array.from({ length: 24 }, (_, i) => i + 1).filter(h => c.permitirNoche || (h >= 8 && h <= 22))
 
   function guardar() {
+    const demo = new URLSearchParams(window.location.search).get('demo') === '1'
     const v = validarConfig(c)
     if (!v) {
       setError(c.inicio >= c.fin ? 'La hora de inicio tiene que ser antes que la hora final.' : 'Revisa las horas: sin permitir la noche, van de 07:00 a 22:00.')
       return
     }
     guardarConfig(v)
-    router.push('/ensayo')
+    router.push(demo ? '/ensayo?demo=1' : '/ensayo')
   }
 
   return (
@@ -54,29 +55,35 @@ export default function Configurar() {
 
       {aviso && (
         <div className="rounded-xl border-2 border-amber-400 bg-amber-400/10 p-4">
-          <p className="text-sm">Si tiembla por un sismo en la {aviso.epicentro.nombre.split(',')[0].toLowerCase()}, en tu ciudad tendrías</p>
-          <p className="text-3xl font-bold text-amber-400">≈ {aviso.segundos} segundos <span className="text-base font-normal text-stone-200">de aviso</span></p>
-          {aviso.segundos === 0 && <p className="mt-1 text-sm text-amber-200">Prácticamente nada: aquí, tu ensayo "con aviso" se parece mucho al "sin aviso".</p>}
-          <p className="mt-2 text-xs text-stone-400">
-            Estimación simple por distancia ({aviso.km} km) a una hipótesis oficial de simulacro ({aviso.epicentro.fuente}). No es el cálculo de la alerta sísmica.
-            En 2017 (sismo de Puebla-Morelos) la alerta llegó a la CDMX después de que empezó a temblar.
-          </p>
+          <p className="text-base">Si el sismo viene de lejos (de la {aviso.epicentro.nombre.split(',')[0].replace('Costa', 'costa').replace('Golfo', 'golfo')}), podrías tener</p>
+          <p className="text-3xl font-bold text-amber-400">unos {aviso.segundos} segundos <span className="text-base font-normal text-stone-100">de aviso…</span></p>
+          <p className="text-xl font-bold text-amber-200">…o ninguno, como el 19 de septiembre de 2017.</p>
+          {aviso.segundos === 0 && <p className="mt-1 text-base text-amber-100">En tu ciudad, aun si viene de lejos, casi no hay aviso.</p>}
+          <p className="mt-2 text-sm text-stone-300">Es una cuenta aproximada por distancia ({aviso.km} km), no la de la alerta sísmica. Por eso ensayas los dos casos.</p>
         </div>
       )}
 
-      <Campo label="¿En qué nivel vas a ensayar?" ayuda="Donde pasas más tiempo. Cambia qué dice la regla sobre salir o quedarte.">
+      <Campo label="¿En qué piso pasas más tiempo?" ayuda="La guía oficial dice cosas distintas para pisos bajos y pisos altos: en pisos bajos se puede salir; en pisos altos, no durante el sismo.">
         <select className={sel} value={c.nivel} onChange={e => set('nivel', e.target.value)}>
           {NIVELES.map(x => <option key={x.id} value={x.id}>{x.nombre}</option>)}
         </select>
       </Campo>
 
-      <Campo label="¿Tu edificio tiene Programa Interno de Protección Civil?" ayuda="Si lo tiene y dice qué hacer, manda su plan y la app no califica tu decisión.">
+      <Campo label="¿Casa o edificio?" ayuda="Si tu edificio ya tiene su plan de Protección Civil, sigue ese plan: la app no califica tu decisión.">
         <select className={sel} value={c.pipc} onChange={e => set('pipc', e.target.value)}>
           {PIPC.map(x => <option key={x.id} value={x.id}>{x.nombre}</option>)}
         </select>
       </Campo>
 
-      <Campo label="¿A qué horas te puede tocar un ensayo?" ayuda="La app elige un momento al azar dentro de estas horas. No te observa para elegirlo.">
+      <Campo label="¿Vives con alguien que no puede moverse rápido?" ayuda="Por ejemplo, alguien con andadera, en silla de ruedas, o un bebé.">
+        <div className="flex gap-2">
+          {[[true, 'Sí'], [false, 'No']].map(([v, t]) => (
+            <button key={t} type="button" onClick={() => set('cuida', v)} className={`flex-1 rounded-lg border px-3 py-2.5 text-base ${c.cuida === v ? 'border-amber-400 bg-amber-400/20 font-bold' : 'border-stone-700'}`}>{t}</button>
+          ))}
+        </div>
+      </Campo>
+
+      <Campo label="¿A qué horas te puede tocar un ensayo?" ayuda="La app elige un momento al azar dentro de estas horas.">
         <div className="flex items-center gap-2">
           <select aria-label="Desde" className={sel} value={c.inicio} onChange={e => set('inicio', Number(e.target.value))}>
             {horasInicio.map(h => <option key={h} value={h}>{hh(h)}</option>)}
@@ -89,11 +96,11 @@ export default function Configurar() {
         <span className="mt-3 flex items-center gap-2 text-sm">
           <input type="checkbox" className="h-5 w-5" checked={c.permitirNoche}
             onChange={e => { const v = e.target.checked; setC(x => v ? { ...x, permitirNoche: true } : { ...x, permitirNoche: false, inicio: Math.max(7, Math.min(x.inicio, 21)), fin: Math.min(22, Math.max(x.fin, 8)) }); setError('') }} />
-          Permitir ensayos de noche (apagado de inicio: tus horas de dormir no se tocan)
+          ¿También de noche? (normalmente no, para no despertarte)
         </span>
       </Campo>
 
-      <Campo label="Intensidad" ayuda="Qué tan fuerte se mueve y suena el cuarto. Puedes salir del ensayo cuando quieras.">
+      <Campo label="Intensidad" ayuda="Qué tan fuerte se mueve y suena el cuarto. Puedes terminar el ensayo cuando quieras.">
         <select className={sel} value={c.intensidad} onChange={e => set('intensidad', e.target.value)}>
           {INTENSIDADES.map(x => <option key={x.id} value={x.id}>{x.nombre}</option>)}
         </select>
@@ -104,8 +111,8 @@ export default function Configurar() {
       <button onClick={guardar} className="w-full rounded-xl bg-amber-400 py-3 text-base font-bold text-stone-900">Guardar y ensayar</button>
 
       <div className="border-t border-stone-800 pt-4">
-        <button onClick={() => { borrarTodo(); setC(CONFIG_INICIAL); setBorrado(true) }} className="rounded-lg border border-stone-700 px-3 py-2 text-sm text-stone-300">Borrar todo lo guardado en este teléfono</button>
-        {borrado && <p className="mt-2 text-sm text-stone-400">Listo: se borró tu configuración, tus ensayos y tus recuerdos.</p>}
+        <button onClick={() => { borrarTodo(); setC(CONFIG_INICIAL); setBorrado(true) }} className="rounded-lg border border-stone-700 px-3 py-2 text-sm text-stone-300">Borrar mis ensayos de esta app (tus fotos y mensajes no se tocan)</button>
+        {borrado && <p className="mt-2 text-sm text-stone-400">Listo: se borraron tus datos de esta app. Nada más de tu teléfono se tocó.</p>}
       </div>
     </div>
   )

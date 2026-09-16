@@ -15,8 +15,8 @@ export default function Inicio() {
       <ol className="space-y-3">
         {[
           ['1', 'Dinos dónde ensayas', 'Tu ciudad, en qué piso estás y a qué horas te puede tocar. Con tu ciudad calculamos cuántos segundos de aviso tendrías.', '/configurar', 'Configurar'],
-          ['2', 'Tres ensayos, nunca treinta', 'Uno sin aviso y uno con aviso, en orden al azar. El tercero repite el que te salió peor, a otra hora.', '/ensayo', 'Ensayar'],
-          ['3', 'Ve tus resultados', 'Cuánto tardaste en decidir y si tu decisión contradice una regla oficial. Solo tú los ves.', '/resultados', 'Mis resultados'],
+          ['2', 'Solo 3 ensayos cortos', 'Uno sin aviso y uno con aviso, en orden al azar. El tercero repite el que te costó más, a otra hora.', '/ensayo', 'Ensayar'],
+          ['3', 'Ve tus resultados', 'Cuánto tardaste en decidir y si tu decisión va contra la guía oficial de Protección Civil. Solo tú los ves.', '/resultados', 'Mis resultados'],
         ].map(([n, t, d, h, b]) => (
           <li key={n} className="rounded-xl border border-stone-800 p-4">
             <p className="font-semibold"><span className="mr-2 text-amber-400">{n}</span>{t}</p>
@@ -29,10 +29,10 @@ export default function Inicio() {
       <section className="rounded-xl border border-stone-700 bg-stone-900 p-4 text-sm text-stone-300">
         <p className="font-semibold text-stone-100">Lo que mide y lo que no</p>
         <ul className="mt-2 list-disc space-y-1 pl-5">
-          <li><b>Sí mide:</b> cuántos segundos tardas en decidir a dónde ir cuando te toma por sorpresa, y si esa decisión contradice una regla oficial citada.</li>
+          <li><b>Sí mide:</b> cuántos segundos tardas en decidir a dónde ir cuando te toma por sorpresa, y si esa decisión va contra la guía oficial.</li>
           <li><b>No mide</b> lo que hace tu cuerpo en un sismo real. Nadie ha probado que un ensayo en pantalla prediga eso, y esta app no lo promete.</li>
           <li><b>No usa</b> cámara, micrófono ni ubicación. Tus resultados se quedan en este teléfono.</li>
-          <li>El temblor es una <b>simulación en pantalla</b> (no es VR) y su duración es inventada.</li>
+          <li>El temblor es un <b>dibujo que se mueve en la pantalla</b> (no es realidad virtual) y su duración es inventada. Puedes terminar cuando quieras.</li>
         </ul>
       </section>
     </div>

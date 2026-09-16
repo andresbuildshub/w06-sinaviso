@@ -1,35 +1,38 @@
-// La regla va ANTES que el tiempo: una decisión rápida que contradice una regla citada no se ve como un buen resultado.
-import { REGLAS, nombreAccion, resultadoDe } from '../lib/ensayo.js'
+// Resultado en lenguaje simple (prueba de persona). La guía oficial va antes que el tiempo,
+// para que una decisión rápida que va contra la guía no parezca un buen resultado.
+import { explicacionSimple, tiempoTexto } from '../lib/ensayo.js'
 
 const TONO = {
   CONTRA: 'border-red-500 bg-red-500/10',
   CONFORME: 'border-emerald-400 bg-emerald-400/10',
-  SIN_REGLA: 'border-stone-500 bg-stone-500/10',
-  SIN_DECISION: 'border-stone-500 bg-stone-500/10',
+  SIN_REGLA: 'border-stone-400 bg-stone-500/10',
+  SIN_DECISION: 'border-amber-400 bg-amber-400/10',
   SALIDA: 'border-sky-400 bg-sky-400/10',
 }
 
-export function Veredicto({ e, nivel }) {
-  const r = resultadoDe(e)
-  const regla = e.reglaId ? REGLAS[e.reglaId] : null
+function Cita({ g }) {
+  if (!g) return null
   return (
-    <div className={`space-y-2 rounded-xl border-l-4 p-4 ${TONO[r]}`}>
-      {r === 'SALIDA' && <p><b className="text-sky-300">SALIDA</b> — saliste del ensayo antes de que terminara. Se cuenta; no se esconde.</p>}
-      {r === 'SIN_DECISION' && <p><b>SIN DECISIÓN DURANTE EL SISMO</b> — no tocaste ningún lugar antes de que terminara.</p>}
-      {e.accion && (
-        <>
-          <p>Tocaste <b>{nombreAccion(e.accion, nivel)}</b>.</p>
-          {r === 'CONTRA' && <p><b className="text-red-300">CONTRADICE UNA REGLA CITADA:</b> “{regla.cita}”</p>}
-          {r === 'CONFORME' && <p><b className="text-emerald-300">VA DE ACUERDO CON UNA REGLA CITADA:</b> “{regla.cita}”</p>}
-          {r === 'SIN_REGLA' && <p><b>SIN REGLA CITADA — no se califica.</b> {e.nota}</p>}
-          {regla && <p className="text-xs text-stone-400">Fuente: <a className="underline" href={regla.url} target="_blank" rel="noreferrer">{regla.fuente}</a></p>}
-          <p className="text-stone-300">
-            Tardaste <b>{e.segundos} s</b> en decidir desde la primera señal
-            {e.tipo === 'con' && (e.segDesdeTemblor < 0 ? ` (decidiste ${Math.abs(e.segDesdeTemblor)} s antes de que empezara a temblar)` : ` (${e.segDesdeTemblor} s después de que empezó a temblar)`)}.
-          </p>
-        </>
-      )}
-      <p className="text-xs text-stone-500">Esto mide cuánto tardas en decidir y si contradices una regla citada. No mide lo que haría tu cuerpo en un sismo real.</p>
+    <blockquote className="rounded-lg bg-stone-950/60 p-3 text-base">
+      “{g.cita}”
+      <span className="mt-1 block text-xs text-stone-400">— <a className="underline" href={g.url} target="_blank" rel="noreferrer">{g.fuente}</a></span>
+    </blockquote>
+  )
+}
+
+export function Veredicto({ e, config }) {
+  const x = explicacionSimple(e, config || {})
+  const t = tiempoTexto(e)
+  return (
+    <div className={`space-y-3 rounded-xl border-l-4 p-4 ${TONO[x.tono]}`}>
+      <p className="text-lg font-bold leading-snug">{x.titulo}</p>
+      {x.texto && <p className="text-stone-200">{x.texto}</p>}
+      {x.tono !== 'SIN_REGLA' && x.tono !== 'SIN_DECISION' && <Cita g={x.guia} />}
+      {x.paso && <p className="text-stone-200">{x.paso}</p>}
+      {(x.tono === 'SIN_REGLA' || x.tono === 'SIN_DECISION') && <Cita g={x.guia} />}
+      {x.extra && (<><p className="text-stone-200">{x.extra.texto} CENAPRED dice:</p><Cita g={x.extra.guia} /></>)}
+      {t && <p className="text-stone-300">{t} <span className="text-stone-400">Todavía no hay datos para decir si es mucho o poco.</span></p>}
+      <p className="text-xs text-stone-400">Esto mide cuánto tardas en decidir y si tu decisión va contra la guía oficial. No mide lo que haría tu cuerpo en un sismo de verdad.</p>
     </div>
   )
 }

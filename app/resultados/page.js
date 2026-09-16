@@ -50,33 +50,33 @@ export default function Resultados() {
           <h2 className="font-semibold">
             {e.n} · {e.tipo === 'sin' ? 'Sin aviso' : `Con aviso (${e.avisoSeg} s)`}{e.repeticion ? ' · repetición del más débil' : ''} · {String(e.hora).padStart(2, '0')}:00{e.noche ? ' (de noche)' : ''}{e.demo ? ' · modo demo' : ''}
           </h2>
-          <Veredicto e={e} nivel={nivel} />
+          <Veredicto e={e} config={config || {}} />
         </section>
       ))}
 
       {ensayos.length > 0 && (
         <section className="rounded-xl border border-stone-700 bg-stone-900 p-4 text-sm">
-          <h2 className="font-semibold">En tus {r.n} ensayo{r.n === 1 ? '' : 's'}</h2>
-          <ul className="mt-2 space-y-1 text-stone-300">
-            <li>Contradijiste una regla citada: <b>{r.contra}</b> ({pct(r.tasaContra)})</li>
-            <li>Sin decisión durante el sismo: <b>{r.sinDecision}</b> ({pct(r.tasaSinDecision)})</li>
-            <li>Salidas: <b>{r.salidas}</b> ({pct(r.tasaSalidas)})</li>
+          <h2 className="font-semibold">En resumen, de tus {r.n} ensayo{r.n === 1 ? '' : 's'}</h2>
+          <ul className="mt-2 space-y-1 text-base text-stone-200">
+            <li>{r.contra === 0 ? 'Ninguna vez fuiste contra la guía oficial.' : `${r.contra} ${r.contra === 1 ? 'vez fuiste' : 'veces fuiste'} contra la guía oficial.`}</li>
+            <li>{r.sinDecision === 0 ? 'Siempre alcanzaste a elegir a dónde ir.' : `${r.sinDecision} ${r.sinDecision === 1 ? 'vez no alcanzaste' : 'veces no alcanzaste'} a elegir a tiempo.`}</li>
+            {r.salidas > 0 && <li>{r.salidas} {r.salidas === 1 ? 'vez terminaste' : 'veces terminaste'} el ensayo antes de tiempo.</li>}
           </ul>
-          <p className="mt-2 text-xs text-stone-500">Las veces sin decisión y las salidas cuentan en el total: no se quitan para que el resultado se vea mejor.</p>
+          <p className="mt-2 text-xs text-stone-400">Todas cuentan, también las veces que no elegiste o terminaste antes: así el resumen no se ve mejor de lo que fue.</p>
           {ensayos.length < 3 && <Link href="/ensayo" className="mt-3 inline-block rounded-lg bg-amber-400 px-4 py-2 font-bold text-stone-900">Siguiente ensayo</Link>}
         </section>
       )}
 
       <section className="rounded-xl border border-stone-800 p-4">
-        <h2 className="font-semibold">¿Tembló de verdad?</h2>
-        <p className="mt-1 text-sm text-stone-400">Cuéntate qué hiciste, para compararlo con tus ensayos. <b>Es un recuerdo, no una medición</b>: la memoria se equivoca.</p>
+        <h2 className="font-semibold">¿Te ha tocado un sismo de verdad?</h2>
+        <p className="mt-1 text-sm text-stone-400">Si quieres, anota qué hiciste para compararlo con tus ensayos. Se queda en este teléfono. <b>Es un recuerdo, no una medición</b>: la memoria se equivoca.</p>
         <form onSubmit={guardarR} className="mt-3 space-y-2">
           <select value={form.accion} onChange={ev => setForm(f => ({ ...f, accion: ev.target.value }))} className="w-full rounded-lg border border-stone-700 bg-stone-900 px-3 py-2.5">
             <option value="">¿Qué hiciste?</option>
             {ACCIONES.map(a => <option key={a} value={a}>{nombreAccion(a, nivel)}</option>)}
             <option value="otra">Otra cosa</option>
           </select>
-          <input inputMode="decimal" maxLength={5} placeholder="¿Cuántos segundos tardaste en decidir? (aprox.)" value={form.segundos}
+          <input inputMode="decimal" maxLength={5} placeholder="Segundos que tardaste en decidir (opcional)" value={form.segundos}
             onChange={ev => setForm(f => ({ ...f, segundos: ev.target.value.replace(/[^0-9.]/g, '') }))} className="w-full rounded-lg border border-stone-700 bg-stone-900 px-3 py-2.5" />
           <button className="rounded-lg border border-stone-600 px-4 py-2 text-sm">Guardar recuerdo</button>
           {msg && <p className="text-sm text-stone-400">{msg}</p>}
@@ -88,7 +88,7 @@ export default function Resultados() {
         )}
       </section>
 
-      <button onClick={() => { borrarTodo(); cargar() }} className="rounded-lg border border-stone-700 px-3 py-2 text-sm text-stone-300">Borrar todo lo guardado en este teléfono</button>
+      <button onClick={() => { borrarTodo(); cargar() }} className="rounded-lg border border-stone-700 px-3 py-2 text-sm text-stone-300">Borrar mis ensayos de esta app (tus fotos y mensajes no se tocan)</button>
     </div>
   )
 }
