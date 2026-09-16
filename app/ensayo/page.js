@@ -29,6 +29,7 @@ export default function Ensayo() {
   const vib = useRef(null)
   const faseRef = useRef(fase); faseRef.current = fase
   const elegidaRef = useRef(null)
+  const listoRef = useRef(false)
 
   const limpiarTimers = () => { timers.current.forEach(clearTimeout); timers.current = []; clearInterval(vib.current); try { navigator.vibrate?.(0) } catch {} }
   const despues = (s, fn) => { timers.current.push(setTimeout(fn, s * 1000)) }
@@ -77,6 +78,7 @@ export default function Ensayo() {
 
   function estoyListo() {
     try { navigator.serviceWorker?.register('/sw.js') } catch {}
+    import('../../components/Cuarto.js').catch(() => {}); import('three').catch(() => {}) // precarga: la carga nunca cuenta en el reloj
     setFase('esperando')
     despues(azar(8, 40) * factor, async () => {
       setFase('toque')
@@ -92,7 +94,14 @@ export default function Ensayo() {
 
   function empezar() {
     audio.current = audio.current || crearAudio()
+    listoRef.current = false
     setFase('calma')
+  }
+
+  // El reloj de calma empieza cuando el cuarto ya se dibujó, no antes: en un teléfono lento la carga no puede comerse los segundos.
+  function cuartoListo() {
+    if (listoRef.current || faseRef.current !== 'calma') return
+    listoRef.current = true
     despues(azar(4, 12) * factor, () => {
       const ahora = performance.now()
       const aviso = plan.tipo === 'con' ? plan.avisoSeg * factor : 0
@@ -185,7 +194,7 @@ export default function Ensayo() {
 
       {enCuarto && (
         <div className="space-y-3">
-          <Cuarto key={plan.n} fase={fase} intensidad={config.intensidad} noche={plan.noche} nivel={config.nivel} elegida={elegida} onElegir={elegir} />
+          <Cuarto key={plan.n} fase={fase} intensidad={config.intensidad} noche={plan.noche} nivel={config.nivel} elegida={elegida} onElegir={elegir} onListo={cuartoListo} />
           <div className="min-h-[3.5rem] text-center" aria-live="polite">
             {fase === 'calma' && <p className="text-stone-400">{hh(plan.hora)} · un día normal en tu sala.</p>}
             {fase === 'aviso' && !elegida && <p className="text-lg font-bold text-amber-300">¡Suena el tono de aviso! Toca a dónde vas.</p>}

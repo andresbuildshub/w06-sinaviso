@@ -6,11 +6,11 @@ import { ACCIONES, nombreAccion } from '../lib/ensayo.js'
 
 const AMPLITUD = { suave: 0.025, media: 0.05, fuerte: 0.09 }
 
-export default function Cuarto({ fase, intensidad = 'media', noche = false, nivel = 'p1', elegida = null, onElegir }) {
+export default function Cuarto({ fase, intensidad = 'media', noche = false, nivel = 'p1', elegida = null, onElegir, onListo }) {
   const caja = useRef(null)
-  const vivo = useRef({ fase, intensidad, elegida, onElegir })
+  const vivo = useRef({ fase, intensidad, elegida, onElegir, onListo })
   const [sinWebGL, setSinWebGL] = useState(false)
-  vivo.current = { fase, intensidad, elegida, onElegir }
+  vivo.current = { fase, intensidad, elegida, onElegir, onListo }
 
   useEffect(() => {
     let cancelado = false, raf = 0, limpiar = () => {}
@@ -19,7 +19,7 @@ export default function Cuarto({ fase, intensidad = 'media', noche = false, nive
       let renderer
       try {
         renderer = new THREE.WebGLRenderer({ antialias: true })
-      } catch { setSinWebGL(true); return }
+      } catch { setSinWebGL(true); vivo.current.onListo?.(); return }
       const el = caja.current
       renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2))
       el.appendChild(renderer.domElement)
@@ -44,46 +44,54 @@ export default function Cuarto({ fase, intensidad = 'media', noche = false, nive
       const marcar = (accion, ...meshes) => { tocables[accion] = [...(tocables[accion] || []), ...meshes]; meshes.forEach(m => { m.userData.accion = accion }) }
 
       // cuarto
-      caja3(6, 0.05, 6, noche ? 0x2a2522 : 0x6b5e52, 0, -0.025, -0.5)
+      // piso con hueco para la escalera cuando no es planta baja
+      const cPiso = noche ? 0x2a2522 : 0x6b5e52
+      if (nivel === 'pb') caja3(6, 0.05, 6, cPiso, 0, -0.025, -0.5)
+      else {
+        caja3(4.0, 0.05, 6, cPiso, -1.0, -0.025, -0.5) // x −3..1
+        caja3(1.1, 0.05, 6, cPiso, 2.45, -0.025, -0.5) // x 1.9..3
+        caja3(0.9, 0.05, 1.45, cPiso, 1.45, -0.025, -2.775) // fondo del hueco
+        caja3(0.9, 0.05, 2.65, cPiso, 1.45, -0.025, 1.175) // frente del hueco
+      }
       caja3(6, 3, 0.05, noche ? 0x3a3d4a : 0xcfc6b8, 0, 1.5, -3)
       caja3(0.05, 3, 6, noche ? 0x343744 : 0xbdb3a4, -3, 1.5, -0.5)
       caja3(0.05, 3, 6, noche ? 0x343744 : 0xbdb3a4, 3, 1.5, -0.5)
 
       // ventana (pared del fondo, derecha)
       const vidrio = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 1.1), new THREE.MeshStandardMaterial({ color: noche ? 0x1b2a4a : 0x9fd8ff, emissive: noche ? 0x0a1224 : 0x5aa9d6, emissiveIntensity: 0.6 }))
-      vidrio.position.set(1.3, 1.7, -2.96); cuarto.add(vidrio)
-      const mv = [caja3(1.65, 0.08, 0.08, 0xeeeeee, 1.3, 2.28, -2.94), caja3(1.65, 0.08, 0.08, 0xeeeeee, 1.3, 1.12, -2.94),
-        caja3(0.08, 1.2, 0.08, 0xeeeeee, 0.5, 1.7, -2.94), caja3(0.08, 1.2, 0.08, 0xeeeeee, 2.1, 1.7, -2.94), caja3(0.05, 1.1, 0.06, 0xeeeeee, 1.3, 1.7, -2.93)]
+      vidrio.position.set(0.75, 1.7, -2.96); cuarto.add(vidrio)
+      const mv = [caja3(1.65, 0.08, 0.08, 0xeeeeee, 0.75, 2.28, -2.94), caja3(1.65, 0.08, 0.08, 0xeeeeee, 0.75, 1.12, -2.94),
+        caja3(0.08, 1.2, 0.08, 0xeeeeee, -0.05, 1.7, -2.94), caja3(0.08, 1.2, 0.08, 0xeeeeee, 1.55, 1.7, -2.94), caja3(0.05, 1.1, 0.06, 0xeeeeee, 0.75, 1.7, -2.93)]
       marcar('ventana', vidrio, ...mv)
 
       // marco de la puerta (pared del fondo, izquierda)
       const hueco = new THREE.Mesh(new THREE.PlaneGeometry(0.95, 2.05), mat(0x1a1512))
-      hueco.position.set(-1.9, 1.03, -2.96); cuarto.add(hueco)
+      hueco.position.set(-1.7, 1.03, -2.96); cuarto.add(hueco)
       marcar('marco', hueco,
-        caja3(0.12, 2.15, 0.12, 0x8a5a2b, -2.43, 1.07, -2.92), caja3(0.12, 2.15, 0.12, 0x8a5a2b, -1.37, 1.07, -2.92), caja3(1.18, 0.12, 0.12, 0x8a5a2b, -1.9, 2.15, -2.92))
+        caja3(0.12, 2.15, 0.12, 0x8a5a2b, -2.23, 1.07, -2.92), caja3(0.12, 2.15, 0.12, 0x8a5a2b, -1.17, 1.07, -2.92), caja3(1.18, 0.12, 0.12, 0x8a5a2b, -1.7, 2.15, -2.92))
 
       // mesa (centro)
-      const mesa = new THREE.Group(); mesa.position.set(-0.2, 0, -1.1); cuarto.add(mesa)
+      const mesa = new THREE.Group(); mesa.position.set(-0.1, 0, -1.7); cuarto.add(mesa)
       marcar('mesa', caja3(1.5, 0.08, 0.9, 0x8b4a1c, 0, 0.76, 0, null, mesa),
         ...[[-0.68, -0.38], [0.68, -0.38], [-0.68, 0.38], [0.68, 0.38]].map(([x, z]) => caja3(0.07, 0.74, 0.07, 0x6b3714, x, 0.37, z, null, mesa)))
 
-      // salida: puerta a la calle (planta baja) o escalera hacia abajo (pisos)
+      // salida: puerta a la calle (planta baja, pared del fondo a la derecha) o escalera hacia abajo (pisos, a la derecha)
       if (nivel === 'pb') {
-        const puerta = caja3(0.06, 2.1, 1.0, 0x2f6b4a, 2.96, 1.05, 0.2)
-        const manija = caja3(0.08, 0.08, 0.08, 0xd4af37, 2.9, 1.05, -0.15)
-        const letrero = new THREE.Mesh(new THREE.PlaneGeometry(0.7, 0.18), mat(0x16a34a, { emissive: 0x16a34a, emissiveIntensity: noche ? 0.9 : 0.3 }))
-        letrero.position.set(2.93, 2.3, 0.2); letrero.rotation.y = -Math.PI / 2; cuarto.add(letrero)
-        marcar('salida', puerta, manija, letrero)
+        const puerta = caja3(1.0, 2.1, 0.06, 0x2f6b4a, 2.25, 1.05, -2.94)
+        const manija = caja3(0.08, 0.08, 0.1, 0xd4af37, 1.9, 1.05, -2.9)
+        const marcoP = [caja3(0.1, 2.2, 0.1, 0xe5e7eb, 1.7, 1.1, -2.92), caja3(0.1, 2.2, 0.1, 0xe5e7eb, 2.8, 1.1, -2.92), caja3(1.2, 0.1, 0.1, 0xe5e7eb, 2.25, 2.2, -2.92)]
+        marcar('salida', puerta, manija, ...marcoP)
       } else {
         const esc = []
-        for (let i = 0; i < 5; i++) esc.push(caja3(1.0, 0.12, 0.35, 0x9c8f80, 2.35, -0.06 - i * 0.02 + 0.3 - i * 0.07, 0.9 - i * 0.35))
-        esc.push(caja3(0.05, 0.9, 1.9, 0x444444, 1.83, 0.75, 0.2), caja3(0.05, 0.05, 1.9, 0x777777, 1.83, 1.2, 0.2))
-        const hueco2 = new THREE.Mesh(new THREE.PlaneGeometry(1.0, 1.8), mat(0x151210)); hueco2.rotation.x = -Math.PI / 2; hueco2.position.set(2.35, 0.005, 0.2); cuarto.add(hueco2)
-        marcar('salida', hueco2, ...esc)
+        for (let i = 0; i < 6; i++) esc.push(caja3(0.9, 0.1, 0.32, 0xc4b5a0, 1.45, 0.02 - i * 0.14, -0.35 - i * 0.3))
+        const hueco2 = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 1.9), mat(0x1c1714)); hueco2.rotation.x = -Math.PI / 2; hueco2.position.set(1.45, -0.95, -1.1); cuarto.add(hueco2)
+        const baranda = [caja3(0.05, 0.05, 1.9, 0x52525b, 0.95, 0.95, -1.1)]
+        for (let k = 0; k < 4; k++) baranda.push(caja3(0.04, 0.95, 0.04, 0x52525b, 0.95, 0.48, -0.2 - k * 0.6))
+        marcar('salida', hueco2, ...esc, ...baranda)
       }
 
       // sofá con la señora (izquierda)
-      const sofa = new THREE.Group(); sofa.position.set(-2.35, 0, -0.4); sofa.rotation.y = Math.PI / 2; cuarto.add(sofa)
+      const sofa = new THREE.Group(); sofa.position.set(-1.35, 0, -0.55); sofa.rotation.y = Math.PI / 2.6; sofa.scale.set(0.75, 1, 1); cuarto.add(sofa)
       const piezasSofa = [caja3(1.9, 0.45, 0.8, 0x8c1c3a, 0, 0.23, 0, null, sofa), caja3(1.9, 0.6, 0.2, 0x7a1832, 0, 0.72, -0.35, null, sofa),
         caja3(0.2, 0.55, 0.8, 0x7a1832, -0.95, 0.4, 0, null, sofa), caja3(0.2, 0.55, 0.8, 0x7a1832, 0.95, 0.4, 0, null, sofa)]
       const cuerpo = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.26, 0.6, 16), mat(0xd9669b)); cuerpo.position.set(0.3, 0.75, -0.05); sofa.add(cuerpo)
@@ -97,7 +105,7 @@ export default function Cuarto({ fase, intensidad = 'media', noche = false, nive
       const objetos = [[-0.55, 0x2563eb, 0.18], [-0.2, 0xf59e0b, 0.26], [0.15, 0x10b981, 0.2]].map(([x, c, h]) => {
         const o = caja3(0.14, h, 0.14, c, x, 1.925 + h / 2, -2.8); o.userData.vel = new THREE.Vector3(); o.userData.cae = false; return o
       })
-      const pivote = new THREE.Group(); pivote.position.set(0, 3.0, -1.1); cuarto.add(pivote)
+      const pivote = new THREE.Group(); pivote.position.set(-0.1, 3.0, -1.7); cuarto.add(pivote)
       const cable = caja3(0.015, 0.7, 0.015, 0x222222, 0, -0.35, 0, null, pivote)
       const foco = new THREE.Mesh(new THREE.SphereGeometry(0.13, 16, 12), new THREE.MeshStandardMaterial({ color: 0xfff1b8, emissive: 0xffe08a, emissiveIntensity: noche ? 0.2 : 0.8 }))
       foco.position.y = -0.75; pivote.add(foco); void cable
@@ -105,7 +113,7 @@ export default function Cuarto({ fase, intensidad = 'media', noche = false, nive
       // luz
       scene.add(new THREE.AmbientLight(0xffffff, noche ? 0.18 : 0.75))
       const sol = new THREE.DirectionalLight(noche ? 0x8fa8ff : 0xfff4e0, noche ? 0.35 : 1.1); sol.position.set(2, 4, 3); scene.add(sol)
-      const luzFoco = new THREE.PointLight(0xffe0a0, noche ? 0.4 : 1.2, 7); luzFoco.position.set(0, 2.2, -1.1); scene.add(luzFoco)
+      const luzFoco = new THREE.PointLight(0xffe0a0, noche ? 0.4 : 1.2, 7); luzFoco.position.set(-0.1, 2.2, -1.7); scene.add(luzFoco)
 
       // tocar
       const ray = new THREE.Raycaster(), p = new THREE.Vector2()
@@ -160,6 +168,7 @@ export default function Cuarto({ fase, intensidad = 'media', noche = false, nive
         renderer.render(scene, camera)
       }
       cuadro()
+      requestAnimationFrame(() => requestAnimationFrame(() => vivo.current.onListo?.()))
 
       limpiar = () => {
         cancelAnimationFrame(raf); ro.disconnect()
@@ -167,7 +176,7 @@ export default function Cuarto({ fase, intensidad = 'media', noche = false, nive
         scene.traverse(o => { o.geometry?.dispose?.(); if (o.material) [].concat(o.material).forEach(m => m.dispose?.()) })
         renderer.dispose(); renderer.domElement.remove()
       }
-    }).catch(() => setSinWebGL(true))
+    }).catch(() => { setSinWebGL(true); vivo.current.onListo?.() })
     return () => { cancelado = true; cancelAnimationFrame(raf); limpiar() }
   }, [noche, nivel])
 
