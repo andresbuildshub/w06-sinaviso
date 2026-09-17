@@ -6,7 +6,16 @@ import { cargarConfig, guardarConfig, borrarTodo } from '../../lib/almacen.js'
 
 const hh = h => `${String(h).padStart(2, '0')}:00`
 
-function Campo({ label, ayuda, children }) {
+function Campo({ label, ayuda, children, grupo = false }) {
+  // grupo: botones → fieldset/legend (un <label> que envuelve botones le roba el nombre accesible al primero)
+  if (grupo) return (
+    <fieldset className="block rounded-xl border border-stone-800 p-3">
+      <legend className="sr-only">{label}</legend>
+      <span aria-hidden="true" className="block text-sm font-semibold">{label}</span>
+      {ayuda && <span className="mt-0.5 block text-xs text-stone-300">{ayuda}</span>}
+      <div className="mt-2">{children}</div>
+    </fieldset>
+  )
   return (
     <label className="block rounded-xl border border-stone-800 p-3">
       <span className="block text-sm font-semibold">{label}</span>
@@ -75,10 +84,10 @@ export default function Configurar() {
         </select>
       </Campo>
 
-      <Campo label="¿Vives con alguien que no puede moverse rápido?" ayuda="Por ejemplo, alguien con andadera, en silla de ruedas, o un bebé.">
+      <Campo grupo label="¿Vives con alguien que no puede moverse rápido?" ayuda="Por ejemplo, alguien con andadera, en silla de ruedas, o un bebé.">
         <div className="flex gap-2">
           {[[true, 'Sí'], [false, 'No']].map(([v, t]) => (
-            <button key={t} type="button" onClick={() => set('cuida', v)} className={`flex-1 rounded-lg border px-3 py-2.5 text-base ${c.cuida === v ? 'border-amber-400 bg-amber-400/20 font-bold' : 'border-stone-700'}`}>{t}</button>
+            <button key={t} type="button" aria-pressed={c.cuida === v} onClick={() => set('cuida', v)} className={`flex-1 rounded-lg border px-3 py-2.5 text-base ${c.cuida === v ? 'border-amber-400 bg-amber-400/20 font-bold' : 'border-stone-700'}`}>{t}</button>
           ))}
         </div>
       </Campo>
